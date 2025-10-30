@@ -1,6 +1,5 @@
-Microsoft (R) Macro Assembler Version 14.44.35219.0	    10/27/25 17:07:56
+Microsoft (R) Macro Assembler Version 14.44.35219.0	    10/29/25 23:40:14
 Source Files\Main.asm					     Page 1 - 1
-
 
 
 				INCLUDE Irvine32.inc
@@ -21,19 +20,25 @@ Source Files\Main.asm					     Page 1 - 1
 			      C .NOLIST
 			      C .LIST
 			      C 
-
+				INCLUDE GameUtility.inc
+			      C 
+			      C PrintBoard PROTO
+			      C 
+ 00000000			.data 
+ 00000000  00000031 [			table BYTE 49 DUP('X')
+	    58
+	   ]
  00000000			.code 
  00000000			main PROC
- 00000000  50				push EAX
- 00000001  B8 00000017			mov EAX, 23
- 00000006  BA 00000016			mov EDX, 22
- 0000000B  03 C2			add EAX, EDX
+ 00000000  BB 00000000 R		MOV EBX, OFFSET table
+ 00000005  E8 00000000 E		CALL PrintBoard
+ 0000000A  E8 00000000 E		CALL Clrscr
 					exit
- 0000000D  6A 00	   *	    push   +000000000h
- 0000000F  E8 00000000 E   *	    call   ExitProcess
- 00000014			main ENDP
+ 0000000F  6A 00	   *	    push   +000000000h
+ 00000011  E8 00000000 E   *	    call   ExitProcess
+ 00000016			main ENDP
 				END main
-Microsoft (R) Macro Assembler Version 14.44.35219.0	    10/27/25 17:07:56
+Microsoft (R) Macro Assembler Version 14.44.35219.0	    10/29/25 23:40:14
 Source Files\Main.asm					     Symbols 2 - 1
 
 
@@ -127,8 +132,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000014 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000031 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000016 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -183,6 +188,7 @@ OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ParseDecimal32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ParseInteger32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 PeekConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+PrintBoard . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Random32 . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 RandomRange  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Randomize  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -235,7 +241,7 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000014 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000016 Public STDCALL
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -469,6 +475,7 @@ lightMagenta . . . . . . . . . .	Number	 0000000Dh
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 red  . . . . . . . . . . . . . .	Number	 00000004h   
+table  . . . . . . . . . . . . .	Byte	 00000000 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   

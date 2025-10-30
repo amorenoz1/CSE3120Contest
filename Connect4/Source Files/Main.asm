@@ -1,12 +1,12 @@
-
 INCLUDE Irvine32.inc
-
+INCLUDE GameUtility.inc
+.data 
+	table BYTE 49 DUP('X')
 .code 
 main PROC
-	push EAX
-	mov EAX, 23
-	mov EDX, 22
-	add EAX, EDX
+	MOV EBX, OFFSET table
+	CALL PrintBoard
+	CALL Clrscr
 	exit
 main ENDP
 END main

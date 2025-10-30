@@ -11,10 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="Source Files\GameUtility.asm" />
     <MASM Include="Source Files\Main.asm" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Source Files\UtilityGame.inc" />
+    <None Include="Source Files\GameUtility.inc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4164AA65-1EF9-4E69-899B-D1BED776070B}</ProjectGuid>
