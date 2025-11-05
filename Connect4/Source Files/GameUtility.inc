@@ -1,2 +1,2 @@
-
 PrintBoard PROTO
+PromptMoveDialogue PROTO

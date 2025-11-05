@@ -11,10 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="Source Files\GameLogic.asm" />
     <MASM Include="Source Files\GameUtility.asm" />
     <MASM Include="Source Files\Main.asm" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Source Files\GameLogic.inc" />
     <None Include="Source Files\GameUtility.inc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

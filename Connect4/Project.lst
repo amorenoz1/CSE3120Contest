@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.44.35219.0	    10/29/25 23:40:14
+Microsoft (R) Macro Assembler Version 14.44.35219.0	    11/05/25 13:39:53
 Source Files\Main.asm					     Page 1 - 1
 
 
@@ -21,24 +21,44 @@ Source Files\Main.asm					     Page 1 - 1
 			      C .LIST
 			      C 
 				INCLUDE GameUtility.inc
-			      C 
 			      C PrintBoard PROTO
+			      C PromptMoveDialogue PROTO
+			      C 
+				INCLUDE GameLogic.inc
+			      C SwitchPlayer PROTO
 			      C 
  00000000			.data 
- 00000000  00000031 [			table BYTE 49 DUP('X')
-	    58
+ 00000000  00000031 [			table BYTE 49 DUP('_')
+	    5F
 	   ]
+ 00000031 58 3A 20 00			current_player BYTE 'X: ',0
+ 00000035 49 6E 70 75 74		move_prompt BYTE "Input the column to make your move ", 0
+	   20 74 68 65 20
+	   63 6F 6C 75 6D
+	   6E 20 74 6F 20
+	   6D 61 6B 65 20
+	   79 6F 75 72 20
+	   6D 6F 76 65 20
+	   00
+					
  00000000			.code 
  00000000			main PROC
  00000000  BB 00000000 R		MOV EBX, OFFSET table
  00000005  E8 00000000 E		CALL PrintBoard
- 0000000A  E8 00000000 E		CALL Clrscr
+
+ 0000000A  BA 00000035 R		MOV EDX, OFFSET move_prompt
+ 0000000F  BB 00000031 R		MOV EBX, OFFSET current_player
+ 00000014  E8 00000000 E		CALL PromptMoveDialogue
+
+ 00000019  BB 00000031 R		MOV EBX, OFFSET current_player
+ 0000001E  E8 00000000 E		CALL SwitchPlayer
+
 					exit
- 0000000F  6A 00	   *	    push   +000000000h
- 00000011  E8 00000000 E   *	    call   ExitProcess
- 00000016			main ENDP
+ 00000023  6A 00	   *	    push   +000000000h
+ 00000025  E8 00000000 E   *	    call   ExitProcess
+ 0000002A			main ENDP
 				END main
-Microsoft (R) Macro Assembler Version 14.44.35219.0	    10/29/25 23:40:14
+Microsoft (R) Macro Assembler Version 14.44.35219.0	    11/05/25 13:39:53
 Source Files\Main.asm					     Symbols 2 - 1
 
 
@@ -132,8 +152,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000031 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000016 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000059 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000002A Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -189,6 +209,7 @@ ParseDecimal32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ParseInteger32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 PeekConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 PrintBoard . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+PromptMoveDialogue . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Random32 . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 RandomRange  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Randomize  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -222,6 +243,7 @@ Str_copy . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Str_length . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_trim . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_ucase  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+SwitchPlayer . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SystemTimeToFileTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WaitMsg  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBinB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -241,7 +263,7 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000016 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000002A Public STDCALL
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -463,6 +485,7 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
+current_player . . . . . . . . .	Byte	 00000031 _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
@@ -474,6 +497,7 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
+move_prompt  . . . . . . . . . .	Byte	 00000035 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
 table  . . . . . . . . . . . . .	Byte	 00000000 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
