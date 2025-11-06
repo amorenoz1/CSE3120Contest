@@ -3,8 +3,9 @@ INCLUDE GameUtility.inc
 INCLUDE GameLogic.inc
 .data 
 	table BYTE 49 DUP('_')
-	current_player BYTE 'X: ',0
+	current_player BYTE "X: ",0
 	move_prompt BYTE "Input the column to make your move ", 0
+	winning_dialogue BYTE "Winner: ",0
 	running DWORD 1
 .code 
 main PROC
@@ -27,6 +28,31 @@ WHILE_L1:
 
 	MOV EBX, OFFSET current_player
 	CALL SwitchPlayer
+
+	MOV EAX, OFFSET table
+	CALL CheckWinCondition
+	
+	CMP AL, 'X'
+	JE X_WIN
+	CMP AL, 'O'
+	JE O_WIN
+	JMP NOT_WIN
+
+X_WIN:
+	CALL Crlf
+	MOV EDX, OFFSET winning_dialogue
+	CALL WriteString
+	MOV AL, 'X'
+	CALL WriteChar
+	MOV running, 0
+O_WIN:
+	CALL Crlf
+	MOV EDX, OFFSET winning_dialogue
+	CALL WriteString
+	MOV AL, 'O'
+	CALL WriteChar
+	MOV running, 0
+NOT_WIN:
 
     JMP WHILE_L1
 DONE:
