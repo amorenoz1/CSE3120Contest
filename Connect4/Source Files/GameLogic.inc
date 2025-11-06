@@ -1,2 +1,3 @@
 SwitchPlayer PROTO
 CheckWinCondition PROTO
+MakeMove PROTO

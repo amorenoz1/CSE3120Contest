@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.44.35219.0	    11/05/25 13:39:53
+Microsoft (R) Macro Assembler Version 14.44.35219.0	    11/06/25 02:22:53
 Source Files\Main.asm					     Page 1 - 1
 
 
@@ -26,13 +26,16 @@ Source Files\Main.asm					     Page 1 - 1
 			      C 
 				INCLUDE GameLogic.inc
 			      C SwitchPlayer PROTO
+			      C CheckWinCondition PROTO
+			      C MakeMove PROTO
 			      C 
- 00000000			.data 
- 00000000  00000031 [			table BYTE 49 DUP('_')
+
+ 00000000			.data
+ 00000000  00000031 [		table BYTE 49 DUP('_')
 	    5F
 	   ]
- 00000031 58 3A 20 00			current_player BYTE 'X: ',0
- 00000035 49 6E 70 75 74		move_prompt BYTE "Input the column to make your move ", 0
+ 00000031 58 3A 20 00		current_player BYTE "X: ", 0
+ 00000035 49 6E 70 75 74	move_prompt BYTE "Input the column to make your move ", 0
 	   20 74 68 65 20
 	   63 6F 6C 75 6D
 	   6E 20 74 6F 20
@@ -40,25 +43,94 @@ Source Files\Main.asm					     Page 1 - 1
 	   79 6F 75 72 20
 	   6D 6F 76 65 20
 	   00
-					
- 00000000			.code 
+ 00000059 57 69 6E 6E 65	winning_dialogue BYTE "Winner: ", 0
+	   72 3A 20 00
+ 00000062 43 6F 6C 75 6D	col_full_msg BYTE "Column full, try again", 0
+	   6E 20 66 75 6C
+	   6C 2C 20 74 72
+	   79 20 61 67 61
+	   69 6E 00
+ 00000079 00000001		running DWORD 1
+
+ 00000000			.code
  00000000			main PROC
- 00000000  BB 00000000 R		MOV EBX, OFFSET table
- 00000005  E8 00000000 E		CALL PrintBoard
+ 00000000  E8 00000007		CALL MainLoop
+				exit
+ 00000005  6A 00	   *	    push   +000000000h
+ 00000007  E8 00000000 E   *	    call   ExitProcess
+ 0000000C			main ENDP
 
- 0000000A  BA 00000035 R		MOV EDX, OFFSET move_prompt
- 0000000F  BB 00000031 R		MOV EBX, OFFSET current_player
- 00000014  E8 00000000 E		CALL PromptMoveDialogue
+ 0000000C			MainLoop PROC
+ 0000000C			WHILE_L1 :
+ 0000000C  83 3D 00000079 R	CMP DWORD PTR running, 1
+	   01
+ 00000013  0F 85 000000AD	JNE DONE
 
- 00000019  BB 00000031 R		MOV EBX, OFFSET current_player
- 0000001E  E8 00000000 E		CALL SwitchPlayer
+ 00000019  BB 00000000 R	MOV EBX, OFFSET table
+ 0000001E  E8 00000000 E	CALL PrintBoard
 
-					exit
- 00000023  6A 00	   *	    push   +000000000h
- 00000025  E8 00000000 E   *	    call   ExitProcess
- 0000002A			main ENDP
+ 00000023  BA 00000035 R	MOV EDX, OFFSET move_prompt
+ 00000028  BB 00000031 R	MOV EBX, OFFSET current_player
+ 0000002D  E8 00000000 E	CALL PromptMoveDialogue; returns column in EAX
+
+ 00000032  BB 00000000 R	MOV EBX, OFFSET table
+ 00000037  8A 15 00000031 R	MOV DL, [current_player]; DL = 'X' or 'O'
+ 0000003D  E8 00000000 E	CALL MakeMove; EAX = column in, EBX = board ptr, DL = player
+				; returns AL = 1 on success, 0 on failure
+
+ 00000042  3C 01		CMP AL, 1
+ 00000044  75 1E		JNE MOVE_FAILED
+
+				; successful move->check for winner
+ 00000046  B8 00000000 R	MOV EAX, OFFSET table
+ 0000004B  E8 00000000 E	CALL CheckWinCondition; AL = 'X' or 'O' or 0
+
+ 00000050  3C 58		CMP AL, 'X'
+ 00000052  74 21		JE X_WIN
+ 00000054  3C 4F		CMP AL, 'O'
+ 00000056  74 44		JE O_WIN
+
+				; no winner -> switch player and continue
+ 00000058  BB 00000031 R	MOV EBX, OFFSET current_player
+ 0000005D  E8 00000000 E	CALL SwitchPlayer
+ 00000062  EB 5D		JMP WHILE_CONTINUE
+
+ 00000064			MOVE_FAILED :
+ 00000064  BA 00000062 R	MOV EDX, OFFSET col_full_msg
+ 00000069  E8 00000000 E	CALL WriteString
+ 0000006E  E8 00000000 E	CALL Crlf
+ 00000073  EB 4C		JMP WHILE_CONTINUE
+
+ 00000075			X_WIN :
+ 00000075  E8 00000000 E	CALL Crlf
+ 0000007A  BA 00000059 R	MOV EDX, OFFSET winning_dialogue
+ 0000007F  E8 00000000 E	CALL WriteString
+ 00000084  B0 58		MOV AL, 'X'
+ 00000086  E8 00000000 E	CALL WriteChar
+ 0000008B  E8 00000000 E	CALL Crlf
+ 00000090  C7 05 00000079 R	MOV DWORD PTR running, 0
+	   00000000
+ 0000009A  EB 25		JMP WHILE_CONTINUE
+
+ 0000009C			O_WIN :
+ 0000009C  E8 00000000 E	CALL Crlf
+ 000000A1  BA 00000059 R	MOV EDX, OFFSET winning_dialogue
+ 000000A6  E8 00000000 E	CALL WriteString
+ 000000AB  B0 4F		MOV AL, 'O'
+ 000000AD  E8 00000000 E	CALL WriteChar
+ 000000B2  E8 00000000 E	CALL Crlf
+ 000000B7  C7 05 00000079 R	MOV DWORD PTR running, 0
+	   00000000
+
+ 000000C1			WHILE_CONTINUE:
+ 000000C1  E9 FFFFFF46		JMP WHILE_L1
+
+ 000000C6			DONE :
+ 000000C6  C3			RET
+ 000000C7			MainLoop ENDP
+
 				END main
-Microsoft (R) Macro Assembler Version 14.44.35219.0	    11/05/25 13:39:53
+Microsoft (R) Macro Assembler Version 14.44.35219.0	    11/06/25 02:22:53
 Source Files\Main.asm					     Symbols 2 - 1
 
 
@@ -152,14 +224,15 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000059 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 0000002A Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 0000007D Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000000C7 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
+CheckWinCondition  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Clrscr . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -201,6 +274,14 @@ HeapFree . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 HeapSize . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 IsDigit  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 LocalFree  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+MainLoop . . . . . . . . . . . .	P Near	 0000000C _TEXT	Length= 000000BB Public STDCALL
+  WHILE_L1 . . . . . . . . . . .	L Near	 0000000C _TEXT	
+  MOVE_FAILED  . . . . . . . . .	L Near	 00000064 _TEXT	
+  X_WIN  . . . . . . . . . . . .	L Near	 00000075 _TEXT	
+  O_WIN  . . . . . . . . . . . .	L Near	 0000009C _TEXT	
+  WHILE_CONTINUE . . . . . . . .	L Near	 000000C1 _TEXT	
+  DONE . . . . . . . . . . . . .	L Near	 000000C6 _TEXT	
+MakeMove . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MessageBoxA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MsgBoxAsk  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MsgBox . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -263,7 +344,7 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000002A Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000000C Public STDCALL
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -485,6 +566,7 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
+col_full_msg . . . . . . . . . .	Byte	 00000062 _DATA	
 current_player . . . . . . . . .	Byte	 00000031 _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
@@ -499,8 +581,10 @@ lightRed . . . . . . . . . . . .	Number	 0000000Ch
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 move_prompt  . . . . . . . . . .	Byte	 00000035 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
+running  . . . . . . . . . . . .	DWord	 00000079 _DATA	
 table  . . . . . . . . . . . . .	Byte	 00000000 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
+winning_dialogue . . . . . . . .	Byte	 00000059 _DATA	
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 

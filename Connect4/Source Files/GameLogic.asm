@@ -128,5 +128,28 @@ Win :
 
 CheckWinCondition ENDP
         
+PUBLIC MakeMove
 
-        END
+MakeMove PROC USES EAX EBX ECX EDX
+MOV ECX, 6
+
+GRAVITY_LOOP:
+    MOV ESI, ECX
+    IMUL ESI, 7
+    ADD ESI, EAX; +column
+    MOV AL, BYTE PTR[EBX + ESI]
+    CMP AL, '_'
+    JE PLACE_PIECE
+    DEC ECX
+    JNS GRAVITY_LOOP
+
+    XOR AL, AL; column full
+    RET
+
+PLACE_PIECE :
+    MOV BYTE PTR[EBX + ESI], DL
+    MOV AL, 1
+    RET
+
+        MakeMove ENDP
+END
