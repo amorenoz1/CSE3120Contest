@@ -5,151 +5,43 @@ INCLUDE GameLogic.inc
 
 PUBLIC SwitchPlayer
 
-SwitchPlayer PROC USES EBX EAX
-	MOV EAX, [EBX]
-	CMP EAX, 'X'
-	JZ IF_1
-	MOV EAX, 'X'
-	IF_1:
-	MOV EAX, 'O'
-	MOV[EBX], EAX
-	RET
+SwitchPlayer PROC USES EAX EBX
+MOV     AL, BYTE PTR[EBX]
+XOR     AL, 17h
+MOV     BYTE PTR[EBX], AL
+RET
 SwitchPlayer ENDP
 
 PUBLIC CheckWinCondition
-CheckWinCondition PROC USES EDX ECX EAX EBX ESI EDI
-    MOV ECX, 0
-    XOR EDX, EDX
-    MOV EBX, 7
-    MOV EDI, EAX
 
-CheckNextCell :
-    MOVZX EDX, BYTE PTR[EDI + ECX]
-    CMP DL, 'X'
-    JE CheckDirections
-    CMP DL, 'O'
-    JNE SkipCell
-
-CheckDirections :
-    PUSH ECX
-    PUSH EDX
-
-    MOV ESI, 0
-    CALL CheckDirection
-    TEST AL, AL
-    JNZ FoundWinner
-
-    MOV ESI, 1
-    CALL CheckDirection
-    TEST AL, AL
-    JNZ FoundWinner
-
-    MOV ESI, 2
-    CALL CheckDirection
-    TEST AL, AL
-    JNZ FoundWinner
-
-    MOV ESI, 3
-    CALL CheckDirection
-    TEST AL, AL
-    JNZ FoundWinner
-
-    POP EDX
-    POP ECX
-
-SkipCell :
-    INC ECX
-    CMP ECX, 49
-    JL CheckNextCell
-
-    XOR AL, AL
-    RET
-
-FoundWinner :
-    POP EDX
-    POP ECX
-    MOV AL, DL
-    RET
-
-CheckDirection :
-    PUSH EBX
-    PUSH EDI
-    MOV EAX, 1
-
-NextStep :
-    MOV EBX, ECX
-    CMP ESI, 0
-    JE HorzDir
-    CMP ESI, 1
-    JE VertDir
-    CMP ESI, 2
-    JE DiagDown
-    CMP ESI, 3
-    JE DiagUp
-
-HorzDir :
-    ADD EBX, 1
-    JMP DirContinue
-
-VertDir :
-    ADD EBX, 7
-    JMP DirContinue
-
-DiagDown :
-    ADD EBX, 8
-    JMP DirContinue
-
-DiagUp :
-    SUB EBX, 6
-
-DirContinue :
-    CMP EBX, 49
-    JAE NoWin
-    MOV AH, BYTE PTR[EDI + EBX]
-    CMP AH, DL
-    JNE NoWin
-    INC EAX
-    CMP EAX, 4
-    JE Win
-    MOV ECX, EBX
-    JMP NextStep
-
-NoWin :
-    XOR AL, AL
-    POP EDI
-    POP EBX
-    RET
-
-Win :
-    MOV AL, 1
-    POP EDI
-    POP EBX
-    RET
-
+; not implemented yet
+CheckWinCondition PROC USES EBX ECX EDX ESI
+NOP
 CheckWinCondition ENDP
-        
+
 PUBLIC MakeMove
 
-MakeMove PROC USES EAX EBX ECX EDX
-MOV ECX, 6
+MakeMove PROC USES ECX ESI
+MOV     ECX, 6; start from bottom row
 
-GRAVITY_LOOP:
-    MOV ESI, ECX
-    IMUL ESI, 7
-    ADD ESI, EAX; +column
-    MOV AL, BYTE PTR[EBX + ESI]
-    CMP AL, '_'
-    JE PLACE_PIECE
-    DEC ECX
-    JNS GRAVITY_LOOP
+CheckRow :
+    MOV     ESI, ECX
+        IMUL    ESI, 7
+        ADD     ESI, EAX; add column
+        CMP     BYTE PTR[EBX + ESI], '_'
+        JE      PlacePiece
 
-    XOR AL, AL; column full
-    RET
+        DEC     ECX
+        CMP     ECX, -1
+        JG      CheckRow
 
-PLACE_PIECE :
-    MOV BYTE PTR[EBX + ESI], DL
-    MOV AL, 1
-    RET
+        XOR     AL, AL
+        RET
 
+        PlacePiece :
+    MOV     BYTE PTR[EBX + ESI], DL
+        MOV     AL, 1
+        RET
         MakeMove ENDP
+
 END

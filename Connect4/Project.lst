@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.44.35219.0	    11/06/25 02:22:53
+Microsoft (R) Macro Assembler Version 14.44.35219.0	    11/06/25 13:34:58
 Source Files\Main.asm					     Page 1 - 1
 
 
@@ -50,7 +50,8 @@ Source Files\Main.asm					     Page 1 - 1
 	   6C 2C 20 74 72
 	   79 20 61 67 61
 	   69 6E 00
- 00000079 00000001		running DWORD 1
+ 00000079 00000000		current_col DWORD ?
+ 0000007D 00000001		running DWORD 1
 
  00000000			.code
  00000000			main PROC
@@ -62,75 +63,73 @@ Source Files\Main.asm					     Page 1 - 1
 
  0000000C			MainLoop PROC
  0000000C			WHILE_L1 :
- 0000000C  83 3D 00000079 R	CMP DWORD PTR running, 1
+ 0000000C  83 3D 0000007D R	CMP DWORD PTR running, 1
 	   01
- 00000013  0F 85 000000AD	JNE DONE
+ 00000013  75 56		JNE DONE
 
- 00000019  BB 00000000 R	MOV EBX, OFFSET table
- 0000001E  E8 00000000 E	CALL PrintBoard
+ 00000015  BB 00000000 R	MOV EBX, OFFSET table
+ 0000001A  E8 00000000 E	CALL PrintBoard
 
- 00000023  BA 00000035 R	MOV EDX, OFFSET move_prompt
- 00000028  BB 00000031 R	MOV EBX, OFFSET current_player
- 0000002D  E8 00000000 E	CALL PromptMoveDialogue; returns column in EAX
+ 0000001F  BA 00000035 R	MOV EDX, OFFSET move_prompt
+ 00000024  BB 00000031 R	MOV EBX, OFFSET current_player
+ 00000029  BF 00000079 R	MOV EDI, OFFSET current_col
+ 0000002E  E8 00000000 E	CALL PromptMoveDialogue
 
- 00000032  BB 00000000 R	MOV EBX, OFFSET table
- 00000037  8A 15 00000031 R	MOV DL, [current_player]; DL = 'X' or 'O'
- 0000003D  E8 00000000 E	CALL MakeMove; EAX = column in, EBX = board ptr, DL = player
-				; returns AL = 1 on success, 0 on failure
+ 00000033  BB 00000000 R	MOV EBX, OFFSET table
+ 00000038  8A 15 00000031 R	MOV DL, [current_player]; DL = 'X' or 'O'
+ 0000003E  A1 00000079 R	MOV EAX, current_col
+ 00000043  E8 00000000 E	CALL MakeMove; EAX = column in, EBX = board ptr, DL = player
 
- 00000042  3C 01		CMP AL, 1
- 00000044  75 1E		JNE MOVE_FAILED
+ 00000048  3C 01		CMP AL, 1
+ 0000004A  75 0C		JNE MOVE_FAILED
 
-				; successful move->check for winner
- 00000046  B8 00000000 R	MOV EAX, OFFSET table
- 0000004B  E8 00000000 E	CALL CheckWinCondition; AL = 'X' or 'O' or 0
 
- 00000050  3C 58		CMP AL, 'X'
- 00000052  74 21		JE X_WIN
- 00000054  3C 4F		CMP AL, 'O'
- 00000056  74 44		JE O_WIN
+				; MOV EAX, OFFSET table
+				; CALL CheckWinCondition; AL = 'X' or 'O' or 0
 
-				; no winner -> switch player and continue
- 00000058  BB 00000031 R	MOV EBX, OFFSET current_player
- 0000005D  E8 00000000 E	CALL SwitchPlayer
- 00000062  EB 5D		JMP WHILE_CONTINUE
+				; CMP AL, 'X'
+				; JE X_WIN
+				; CMP AL, 'O'
+				; JE O_WIN
 
- 00000064			MOVE_FAILED :
- 00000064  BA 00000062 R	MOV EDX, OFFSET col_full_msg
- 00000069  E8 00000000 E	CALL WriteString
- 0000006E  E8 00000000 E	CALL Crlf
- 00000073  EB 4C		JMP WHILE_CONTINUE
+ 0000004C  BB 00000031 R	MOV EBX, OFFSET current_player
+ 00000051  E8 00000000 E	CALL SwitchPlayer
+ 00000056  EB 11		JMP WHILE_CONTINUE
 
- 00000075			X_WIN :
- 00000075  E8 00000000 E	CALL Crlf
- 0000007A  BA 00000059 R	MOV EDX, OFFSET winning_dialogue
- 0000007F  E8 00000000 E	CALL WriteString
- 00000084  B0 58		MOV AL, 'X'
- 00000086  E8 00000000 E	CALL WriteChar
- 0000008B  E8 00000000 E	CALL Crlf
- 00000090  C7 05 00000079 R	MOV DWORD PTR running, 0
-	   00000000
- 0000009A  EB 25		JMP WHILE_CONTINUE
+ 00000058			MOVE_FAILED :
+ 00000058  BA 00000062 R	MOV EDX, OFFSET col_full_msg
+ 0000005D  E8 00000000 E	CALL WriteString
+ 00000062  E8 00000000 E	CALL Crlf
+ 00000067  EB 00		JMP WHILE_CONTINUE
 
- 0000009C			O_WIN :
- 0000009C  E8 00000000 E	CALL Crlf
- 000000A1  BA 00000059 R	MOV EDX, OFFSET winning_dialogue
- 000000A6  E8 00000000 E	CALL WriteString
- 000000AB  B0 4F		MOV AL, 'O'
- 000000AD  E8 00000000 E	CALL WriteChar
- 000000B2  E8 00000000 E	CALL Crlf
- 000000B7  C7 05 00000079 R	MOV DWORD PTR running, 0
-	   00000000
+				; X_WIN:
+				; CALL Crlf
+				; MOV EDX, OFFSET winning_dialogue
+				; CALL WriteString
+				; MOV AL, 'X'
+				; CALL WriteChar
+				; CALL Crlf
+				; MOV DWORD PTR running, 0
+				; JMP WHILE_CONTINUE
 
- 000000C1			WHILE_CONTINUE:
- 000000C1  E9 FFFFFF46		JMP WHILE_L1
+				; O_WIN:
+				; CALL Crlf
+				; MOV EDX, OFFSET winning_dialogue
+				; CALL WriteString
+				; MOV AL, 'O'
+				; CALL WriteChar
+				; CALL Crlf
+				; MOV DWORD PTR running, 0
 
- 000000C6			DONE :
- 000000C6  C3			RET
- 000000C7			MainLoop ENDP
+ 00000069			WHILE_CONTINUE:
+ 00000069  EB A1		JMP WHILE_L1
+
+ 0000006B			DONE :
+ 0000006B  C3			RET
+ 0000006C			MainLoop ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.44.35219.0	    11/06/25 02:22:53
+Microsoft (R) Macro Assembler Version 14.44.35219.0	    11/06/25 13:34:58
 Source Files\Main.asm					     Symbols 2 - 1
 
 
@@ -224,8 +223,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000007D Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000000C7 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000081 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000006C Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -274,13 +273,11 @@ HeapFree . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 HeapSize . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 IsDigit  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 LocalFree  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-MainLoop . . . . . . . . . . . .	P Near	 0000000C _TEXT	Length= 000000BB Public STDCALL
+MainLoop . . . . . . . . . . . .	P Near	 0000000C _TEXT	Length= 00000060 Public STDCALL
   WHILE_L1 . . . . . . . . . . .	L Near	 0000000C _TEXT	
-  MOVE_FAILED  . . . . . . . . .	L Near	 00000064 _TEXT	
-  X_WIN  . . . . . . . . . . . .	L Near	 00000075 _TEXT	
-  O_WIN  . . . . . . . . . . . .	L Near	 0000009C _TEXT	
-  WHILE_CONTINUE . . . . . . . .	L Near	 000000C1 _TEXT	
-  DONE . . . . . . . . . . . . .	L Near	 000000C6 _TEXT	
+  MOVE_FAILED  . . . . . . . . .	L Near	 00000058 _TEXT	
+  WHILE_CONTINUE . . . . . . . .	L Near	 00000069 _TEXT	
+  DONE . . . . . . . . . . . . .	L Near	 0000006B _TEXT	
 MakeMove . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MessageBoxA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MsgBoxAsk  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -567,6 +564,7 @@ black  . . . . . . . . . . . . .	Number	 00000000h
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
 col_full_msg . . . . . . . . . .	Byte	 00000062 _DATA	
+current_col  . . . . . . . . . .	DWord	 00000079 _DATA	
 current_player . . . . . . . . .	Byte	 00000031 _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
@@ -581,7 +579,7 @@ lightRed . . . . . . . . . . . .	Number	 0000000Ch
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 move_prompt  . . . . . . . . . .	Byte	 00000035 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-running  . . . . . . . . . . . .	DWord	 00000079 _DATA	
+running  . . . . . . . . . . . .	DWord	 0000007D _DATA	
 table  . . . . . . . . . . . . .	Byte	 00000000 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 winning_dialogue . . . . . . . .	Byte	 00000059 _DATA	

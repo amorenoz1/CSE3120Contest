@@ -29,7 +29,7 @@ PrintBoard ENDP
 
 PUBLIC PromptMoveDialogue
 
-PromptMoveDialogue PROC USES EAX EDX EBX
+PromptMoveDialogue PROC USES EAX EDX EBX EDI
 	CALL Crlf
 
 	CALL WriteString
@@ -38,7 +38,7 @@ PromptMoveDialogue PROC USES EAX EDX EBX
 	CALL WriteString
 
 	CALL ReadInt	
-
+	MOV [EDI], EAX
 	RET
 
 PromptMoveDialogue ENDP
